@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Manager</title>
+</head>
+<body>
+  <h1>Task Manager</h1>
+
+  <!-- Add Task -->
+  <div>
+    <input type="text" id="newTaskTitle" placeholder="New Task Title" />
+    <button onclick="addTask()">Add Task</button>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <script>
+    const API_URL = 'https://task-manager-api-vs99.onrender.com/tasks'; 
+    const API_KEY = 'my-secret-key';
+
+    // Load tasks when the page loads
+    window.onload = fetchTasks;
+
+    function fetchTasks() {
+      fetch(API_URL, {
+        headers: { 'x-api-key': API_KEY }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+        data.forEach(task => {
+          const li = document.createElement('li');
+          
+          // Task title input
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = task.title;
+          input.disabled = true;
+
+          // Edit button
+          const editBtn = document.createElement('button');
+          editBtn.textContent = 'Edit';
+          editBtn.onclick = () => {
+            input.disabled = false;
+            saveBtn.style.display = 'inline';
+            editBtn.style.display = 'none';
+          };
+
+          // Save button
+          const saveBtn = document.createElement('button');
+          saveBtn.textContent = 'Save';
+          saveBtn.style.display = 'none';
+          saveBtn.onclick = () => updateTask(task.id, input.value);
+
+          // Delete button
+          const delBtn = document.createElement('button');
+          delBtn.textContent = 'Delete';
+          delBtn.onclick = () => deleteTask(task.id);
+
+          li.appendChild(input);
+          li.appendChild(editBtn);
+          li.appendChild(saveBtn);
+          li.appendChild(delBtn);
+          taskList.appendChild(li);
+        });
+      });
+    }
+
+    function addTask() {
+      const title = document.getElementById('newTaskTitle').value.trim();
+      if (!title) return;
+
+      fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        },
+        body: JSON.stringify({ title })
+      }).then(() => {
+        document.getElementById('newTaskTitle').value = '';
+        fetchTasks();
+      });
+    }
+
+    function updateTask(id, newTitle) {
+      fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        },
+        body: JSON.stringify({ title: newTitle })
+      }).then(() => fetchTasks());
+    }
+
+    function deleteTask(id) {
+      fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-api-key': API_KEY }
+      }).then(() => fetchTasks());
+    }
+  </script>
+</body>
+</html>

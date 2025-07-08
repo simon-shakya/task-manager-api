@@ -3,6 +3,10 @@ from functools import wraps
 from flask import abort
 from flask_sqlalchemy import SQLAlchemy
 import os
+from flask_cors import CORS
+
+app =Flask(__name__)
+CORS(app)
 
 def require_api_key(f):
     @wraps(f)
@@ -15,8 +19,6 @@ def require_api_key(f):
 
 API_KEY = "my-secret-key"
 
-
-app =Flask(__name__)
 
 app.url_map.strict_slashes = False
 
